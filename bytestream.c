@@ -29,14 +29,31 @@
 
 /* context of the byte stream. */
 typedef struct _bstm_ctx {
+
+    /* capacity. */
     bstm_u32 cap;
+
+    /* actual allocated memory size
+       for the buffer. */
     bstm_u32 size;
+
+    /* stream buffer, which is used
+       as a FIFO. */
     bstm_u8 *buff;
+
+    /* head index. */
     bstm_u32 head;
+
+    /* tail index. */
     bstm_u32 tail;
-    struct _bstm_ctx_cache
-    {
+
+    /* cached attributes. */
+    struct _bstm_ctx_cache {
+
+        /* free space size. */
         bstm_u32 free;
+
+        /* used space size. */
         bstm_u32 used;
     } cache;
 } bstm_ctx;

@@ -88,8 +88,14 @@ typedef struct _bstm_ctx    bstm_ctx;
 
 /* status of the byte stream. */
 typedef struct _bstm_stat {
+
+    /* capacity. */
     bstm_u32 cap;
+
+    /* free space size. */
     bstm_u32 free;
+
+    /* used space size. */
     bstm_u32 used;
 } bstm_stat;
 
