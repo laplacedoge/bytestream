@@ -216,7 +216,7 @@ bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size) {
     return BSTM_OK;
 }
 
-bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
+bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
     bstm_u8 *first_copy_ptr;
     bstm_u32 temp_head;
 
