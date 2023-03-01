@@ -222,6 +222,7 @@ bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
 
     BSTM_ASSERT(ctx != NULL);
     BSTM_ASSERT(buff != NULL);
+    BSTM_ASSERT(offs <= BSTM_CAP_MAX);
     BSTM_ASSERT(size <= BSTM_CAP_MAX);
 
     if (size == 0)
