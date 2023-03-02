@@ -66,7 +66,6 @@ bstm_res bstm_new(bstm_ctx **ctx, bstm_u32 cap) {
     bstm_u8 *alloc_buff;
     bstm_u32 buff_size;
     bstm_res res;
-    int ret;
 
     BSTM_ASSERT(ctx != NULL);
     BSTM_ASSERT(cap != 0);
@@ -81,7 +80,7 @@ bstm_res bstm_new(bstm_ctx **ctx, bstm_u32 cap) {
 
     /* allocate buffer. */
     buff_size = ((cap >> 3) + 1) << 3;
-    alloc_buff = (bstm_u8 *)malloc(alloc_ctx->size);
+    alloc_buff = (bstm_u8 *)malloc(buff_size);
     if (alloc_buff == NULL)
     {
         free(alloc_ctx);
