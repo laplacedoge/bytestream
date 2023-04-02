@@ -86,69 +86,36 @@ typedef bstm_s32            bstm_res;
 /* context of the byte stream. */
 typedef struct _bstm_ctx    bstm_ctx;
 
+/* configuration of the byte stream. */
+typedef struct _bstm_conf {
+
+    /* capacity of the byte stream. */
+    bstm_u32 cap_size;
+} bstm_conf;
+
 /* status of the byte stream. */
 typedef struct _bstm_stat {
 
-    /* capacity. */
-    bstm_u32 cap;
+    /* capacity of the byte stream. */
+    bstm_u32 cap_size;
 
     /* free space size. */
-    bstm_u32 free;
+    bstm_u32 free_size;
 
     /* used space size. */
-    bstm_u32 used;
+    bstm_u32 used_size;
 } bstm_stat;
 
-/**
- * @brief create a byte stream.
- * 
- * @param ctx pointer pointing to a byte stream context pointer.
- * @param cap capacity of the byte stream.
-*/
-bstm_res bstm_new(bstm_ctx **ctx, bstm_u32 cap);
+bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf);
 
-/**
- * @brief delete the byte stream.
- * 
- * @param ctx the byte stream context pointer.
-*/
 bstm_res bstm_del(bstm_ctx *ctx);
 
-/**
- * @brief get the status of the byte stream.
- * 
- * @param ctx the byte stream context pointer.
- * @param stat byte stream status.
-*/
 bstm_res bstm_status(bstm_ctx *ctx, bstm_stat *stat);
 
-/**
- * @brief write data to the byte stream.
- * 
- * @param ctx the byte stream context pointer.
- * @param buff the buffer to store the written data.
- * @param size the size of the written data.
-*/
 bstm_res bstm_write(bstm_ctx *ctx, const void *buff, bstm_u32 size);
 
-/**
- * @brief read data from the byte stream.
- * 
- * @param ctx the byte stream context pointer.
- * @param buff the buffer to store the read data. (could be NULL,
- *             then the data will be just discarded!)
- * @param size the size of the read data.
-*/
 bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size);
 
-/**
- * @brief peek data from the byte stream.
- * 
- * @param ctx the byte stream context pointer.
- * @param buff the buffer to store the peeked data.
- * @param offs the offset where the peeking starts.
- * @param size the size of the peeked data.
-*/
 bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size);
 
 #endif
