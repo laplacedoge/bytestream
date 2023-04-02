@@ -257,6 +257,11 @@ bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
     BSTM_ASSERT(ctx != NULL);
     BSTM_ASSERT(buff != NULL);
 
+    /* check if the offset is valid. */
+    if (offs >= ctx->cache.used_size) {
+        return BSTM_ERR_BAD_OFFS;
+    }
+
     /* if the size is 0, return immediately. */
     if (size == 0) {
         return BSTM_OK;

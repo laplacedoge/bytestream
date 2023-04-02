@@ -58,6 +58,9 @@ enum _bstm_res {
 
     /* insufficient data to read or peek. */
     BSTM_ERR_NO_DAT     = -4,
+
+    /* invalid offset. */
+    BSTM_ERR_BAD_OFFS   = -5,
 };
 
 #ifdef BSTM_DEBUG
