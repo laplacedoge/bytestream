@@ -14,17 +14,17 @@ bytestream is easy to use, look:
 
 #include "bytestream.h"
 
-void show_bstm_status(bstm_ctx *stm) {
-    bstm_stat stat;
+void show_bstm_status(bstm_ctx_t *stm) {
+    bstm_stat_t stat;
 
-    bstm_status(stm, &stat);
+    bstm_stat(stm, &stat);
     printf("capacity: %u, free: %u, used: %u\n",
         stat.cap, stat.free, stat.used);
 }
 
 int main(void) {
-    bstm_ctx *stm;
-    bstm_res res;
+    bstm_ctx_t *stm;
+    bstm_res_t res;
     char buff[128];
 
     /* create new bytestream. */

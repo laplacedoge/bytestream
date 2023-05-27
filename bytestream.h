@@ -33,14 +33,16 @@
 #endif
 
 /* basic data types. */
-typedef signed char     bstm_s8;
-typedef unsigned char   bstm_u8;
+typedef signed char     bstm_s8_t;
+typedef unsigned char   bstm_u8_t;
 
-typedef signed short    bstm_s16;
-typedef unsigned short  bstm_u16;
+typedef signed short    bstm_s16_t;
+typedef unsigned short  bstm_u16_t;
 
-typedef signed int      bstm_s32;
-typedef unsigned int    bstm_u32;
+typedef signed int      bstm_s32_t;
+typedef unsigned int    bstm_u32_t;
+
+typedef bstm_u32_t      bstm_size_t;
 
 enum _bstm_res {
 
@@ -74,12 +76,12 @@ enum _bstm_res {
         __FILE__, __LINE__, #expr); while (1);};
 
 /* returned result used in the APIs. */
-typedef enum _bstm_res      bstm_res;
+typedef enum _bstm_res      bstm_res_t;
 
 #else
 
 /* returned result used in the APIs. */
-typedef bstm_s32            bstm_res;
+typedef bstm_s32_t          bstm_res_t;
 
 /* assertion macro used in the APIs. */
 #define BSTM_ASSERT(expr)
@@ -87,38 +89,38 @@ typedef bstm_s32            bstm_res;
 #endif
 
 /* context of the byte stream. */
-typedef struct _bstm_ctx    bstm_ctx;
+typedef struct _bstm_ctx    bstm_ctx_t;
 
 /* configuration of the byte stream. */
 typedef struct _bstm_conf {
 
     /* capacity of the byte stream. */
-    bstm_u32 cap_size;
-} bstm_conf;
+    bstm_u32_t cap_size;
+} bstm_conf_t;
 
 /* status of the byte stream. */
 typedef struct _bstm_stat {
 
     /* capacity of the byte stream. */
-    bstm_u32 cap_size;
+    bstm_u32_t cap_size;
 
     /* free space size. */
-    bstm_u32 free_size;
+    bstm_u32_t free_size;
 
     /* used space size. */
-    bstm_u32 used_size;
-} bstm_stat;
+    bstm_u32_t used_size;
+} bstm_stat_t;
 
-bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf);
+bstm_res_t bstm_new(bstm_ctx_t **ctx, bstm_conf_t *conf);
 
-bstm_res bstm_del(bstm_ctx *ctx);
+bstm_res_t bstm_del(bstm_ctx_t *ctx);
 
-bstm_res bstm_status(bstm_ctx *ctx, bstm_stat *stat);
+bstm_res_t bstm_stat(bstm_ctx_t *ctx, bstm_stat_t *stat);
 
-bstm_res bstm_write(bstm_ctx *ctx, const void *buff, bstm_u32 size);
+bstm_res_t bstm_write(bstm_ctx_t *ctx, const void *data, bstm_size_t size);
 
-bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size);
+bstm_res_t bstm_read(bstm_ctx_t *ctx, void *data, bstm_size_t size);
 
-bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size);
+bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t size);
 
 #endif

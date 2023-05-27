@@ -30,32 +30,32 @@
 /* context of the byte stream. */
 typedef struct _bstm_ctx {
 
-    /* byte stream buffer, which is used as a FIFO. */
-    bstm_u8 *buff;
+    /* ring buffer. */
+    bstm_u8_t *ring_buff;
 
     /* head byte index. */
-    bstm_u32 head_idx;
+    bstm_u32_t head_idx;
 
     /* tail byte index. */
-    bstm_u32 tail_idx;
+    bstm_u32_t tail_idx;
 
     /* configuration. */
     struct _bstm_ctx_conf {
 
         /* capacity of the byte stream. */
-        bstm_u32 cap_size;
+        bstm_u32_t cap_size;
     } conf;
 
     /* cached data for fast access. */
     struct _bstm_ctx_cache {
 
         /* unused buffer size. */
-        bstm_u32 free_size;
+        bstm_u32_t free_size;
 
         /* used buffer size. */
-        bstm_u32 used_size;
+        bstm_u32_t used_size;
     } cache;
-} bstm_ctx;
+} bstm_ctx_t;
 
 /* default capacity size. */
 #define BSTM_DEF_CAP_SIZE   1024
@@ -66,11 +66,11 @@ typedef struct _bstm_ctx {
  * @param ctx context pointer.
  * @param conf configuration pointer.
 */
-bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf) {
-    bstm_ctx *alloc_ctx;
-    bstm_u8 *alloc_buff;
-    bstm_u32 cap_size;
-    bstm_u32 buff_size;
+bstm_res_t bstm_new(bstm_ctx_t **ctx, bstm_conf_t *conf) {
+    bstm_ctx_t *alloc_ctx;
+    bstm_u8_t *alloc_buff;
+    bstm_u32_t cap_size;
+    bstm_u32_t buff_size;
 
     BSTM_ASSERT(ctx != NULL);
 
@@ -84,14 +84,14 @@ bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf) {
     /* make sure the buffer size is a multiple of 8. */
     buff_size = ((cap_size >> 3) + 1) << 3;
 
-    /* allocate memory for the buffer. */
-    alloc_buff = (bstm_u8 *)malloc(buff_size);
+    /* allocate memory for the ring buffer. */
+    alloc_buff = (bstm_u8_t *)malloc(buff_size);
     if (alloc_buff == NULL) {
         return BSTM_ERR_NO_MEM;
     }
 
     /* allocate memory for the context. */
-    alloc_ctx = (bstm_ctx *)malloc(sizeof(bstm_ctx));
+    alloc_ctx = (bstm_ctx_t *)malloc(sizeof(bstm_ctx_t));
     if (alloc_ctx == NULL) {
         free(alloc_buff);
 
@@ -99,8 +99,8 @@ bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf) {
     }
 
     /* initialize the context. */
-    memset(alloc_ctx, 0, sizeof(bstm_ctx));
-    alloc_ctx->buff = alloc_buff;
+    memset(alloc_ctx, 0, sizeof(bstm_ctx_t));
+    alloc_ctx->ring_buff = alloc_buff;
     alloc_ctx->conf.cap_size = cap_size;
     alloc_ctx->cache.free_size = cap_size;
 
@@ -115,11 +115,11 @@ bstm_res bstm_new(bstm_ctx **ctx, bstm_conf *conf) {
  * 
  * @param ctx context pointer.
 */
-bstm_res bstm_del(bstm_ctx *ctx) {
+bstm_res_t bstm_del(bstm_ctx_t *ctx) {
     BSTM_ASSERT(ctx != NULL);
 
     /* free the buffer and the context. */
-    free(ctx->buff);
+    free(ctx->ring_buff);
     free(ctx);
 
     return BSTM_OK;
@@ -131,7 +131,7 @@ bstm_res bstm_del(bstm_ctx *ctx) {
  * @param ctx context pointer.
  * @param stat status pointer.
 */
-bstm_res bstm_status(bstm_ctx *ctx, bstm_stat *stat) {
+bstm_res_t bstm_stat(bstm_ctx_t *ctx, bstm_stat_t *stat) {
     BSTM_ASSERT(ctx != NULL);
     BSTM_ASSERT(stat != NULL);
 
@@ -147,14 +147,14 @@ bstm_res bstm_status(bstm_ctx *ctx, bstm_stat *stat) {
  * @brief write data to the byte stream.
  * 
  * @param ctx context pointer.
- * @param buff buffer pointer.
+ * @param data data pointer.
  * @param size data size.
 */
-bstm_res bstm_write(bstm_ctx *ctx, const void *buff, bstm_u32 size) {
-    bstm_u8 *first_copy_ptr;
+bstm_res_t bstm_write(bstm_ctx_t *ctx, const void *data, bstm_size_t size) {
+    bstm_u8_t *first_copy_ptr;
 
     BSTM_ASSERT(ctx != NULL);
-    BSTM_ASSERT(buff != NULL);
+    BSTM_ASSERT(data != NULL);
 
     /* if the size is 0, return immediately. */
     if (size == 0) {
@@ -166,18 +166,17 @@ bstm_res bstm_write(bstm_ctx *ctx, const void *buff, bstm_u32 size) {
         return BSTM_ERR_NO_SPA;
     }
 
-    /* copy the external buffer to the byte stream buffer and update the tail
-       index. */
-    first_copy_ptr = ctx->buff + ctx->tail_idx;
+    /* copy data to the ring buffer. */
+    first_copy_ptr = ctx->ring_buff + ctx->tail_idx;
     if (ctx->conf.cap_size + 1 - ctx->tail_idx >= size) {
-        memcpy(first_copy_ptr, buff, size);
+        memcpy(first_copy_ptr, data, size);
         ctx->tail_idx = (ctx->tail_idx + size) % (ctx->conf.cap_size + 1);
     } else {
-        bstm_u32 first_copy_size = ctx->conf.cap_size + 1 - ctx->tail_idx;
-        bstm_u32 second_copy_size = size - first_copy_size;
+        bstm_size_t first_copy_size = ctx->conf.cap_size + 1 - ctx->tail_idx;
+        bstm_size_t second_copy_size = size - first_copy_size;
 
-        memcpy(first_copy_ptr, buff, first_copy_size);
-        memcpy(ctx->buff, (bstm_u8 *)buff + first_copy_size, second_copy_size);
+        memcpy(first_copy_ptr, data, first_copy_size);
+        memcpy(ctx->ring_buff, (bstm_u8_t *)data + first_copy_size, second_copy_size);
         ctx->tail_idx = second_copy_size;
     }
 
@@ -191,15 +190,15 @@ bstm_res bstm_write(bstm_ctx *ctx, const void *buff, bstm_u32 size) {
 /**
  * @brief read data from the byte stream.
  * 
- * @note if the buffer pointer is NULL, the data will be discarded without
- *       buffer copying.
+ * @note if the data pointer is NULL, the data will be discarded without any
+ *       copying.
  * 
  * @param ctx context pointer.
- * @param buff buffer pointer.
+ * @param data data pointer.
  * @param size data size.
 */
-bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size) {
-    bstm_u8 *first_copy_ptr;
+bstm_res_t bstm_read(bstm_ctx_t *ctx, void *data, bstm_size_t size) {
+    bstm_u8_t *first_copy_ptr;
 
     BSTM_ASSERT(ctx != NULL);
 
@@ -213,21 +212,20 @@ bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size) {
         return BSTM_ERR_NO_DAT;
     }
 
-    /* copy the data from the byte stream buffer to the external buffer and
-       update the head index. */
-    first_copy_ptr = (bstm_u8 *)ctx->buff + ctx->head_idx;
+    /* copy data from the ring buffer. */
+    first_copy_ptr = (bstm_u8_t *)ctx->ring_buff + ctx->head_idx;
     if (ctx->conf.cap_size + 1 - ctx->head_idx >= size) {
-        if (buff != NULL) {
-            memcpy(buff, first_copy_ptr, size);
+        if (data != NULL) {
+            memcpy(data, first_copy_ptr, size);
         }
         ctx->head_idx = (ctx->head_idx + size) % (ctx->conf.cap_size + 1);
     } else {
-        bstm_u32 first_copy_size = ctx->conf.cap_size + 1 - ctx->head_idx;
-        bstm_u32 second_copy_size = size - first_copy_size;
+        bstm_size_t first_copy_size = ctx->conf.cap_size + 1 - ctx->head_idx;
+        bstm_size_t second_copy_size = size - first_copy_size;
 
-        if (buff != NULL) {
-            memcpy(buff, first_copy_ptr, first_copy_size);
-            memcpy((bstm_u8 *)buff + first_copy_size, ctx->buff, second_copy_size);
+        if (data != NULL) {
+            memcpy(data, first_copy_ptr, first_copy_size);
+            memcpy((bstm_u8_t *)data + first_copy_size, ctx->ring_buff, second_copy_size);
         }
 
         ctx->head_idx = second_copy_size;
@@ -246,16 +244,16 @@ bstm_res bstm_read(bstm_ctx *ctx, void *buff, bstm_u32 size) {
  * @note the data will not be removed from the byte stream.
  * 
  * @param ctx context pointer.
- * @param buff data buffer.
+ * @param data data buffer.
  * @param offs offset.
  * @param size data size.
 */
-bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
-    bstm_u8 *first_copy_ptr;
-    bstm_u32 temp_head_idx;
+bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t size) {
+    bstm_u8_t *first_copy_ptr;
+    bstm_size_t temp_head_idx;
 
     BSTM_ASSERT(ctx != NULL);
-    BSTM_ASSERT(buff != NULL);
+    BSTM_ASSERT(data != NULL);
 
     /* check if the offset is valid. */
     if (offs >= ctx->cache.used_size) {
@@ -272,17 +270,17 @@ bstm_res bstm_peek(bstm_ctx *ctx, void *buff, bstm_u32 offs, bstm_u32 size) {
         return BSTM_ERR_NO_DAT;
     }
 
-    /* copy the data from the byte stream buffer to the external buffer. */
+    /* copy data from the ring buffer. */
     temp_head_idx = (ctx->head_idx + offs) % (ctx->conf.cap_size + 1);
-    first_copy_ptr = (bstm_u8 *)ctx->buff + temp_head_idx;
+    first_copy_ptr = (bstm_u8_t *)ctx->ring_buff + temp_head_idx;
     if (ctx->conf.cap_size + 1 - temp_head_idx >= size) {
-        memcpy(buff, first_copy_ptr, size);
+        memcpy(data, first_copy_ptr, size);
     } else {
-        bstm_u32 first_copy_size = ctx->conf.cap_size + 1 - temp_head_idx;
-        bstm_u32 second_copy_size = size - first_copy_size;
+        bstm_size_t first_copy_size = ctx->conf.cap_size + 1 - temp_head_idx;
+        bstm_size_t second_copy_size = size - first_copy_size;
 
-        memcpy(buff, first_copy_ptr, first_copy_size);
-        memcpy((bstm_u8 *)buff + first_copy_size, ctx->buff, second_copy_size);
+        memcpy(data, first_copy_ptr, first_copy_size);
+        memcpy((bstm_u8_t *)data + first_copy_size, ctx->ring_buff, second_copy_size);
     }
 
     return BSTM_OK;
