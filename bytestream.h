@@ -63,6 +63,12 @@ enum _bstm_res {
 
     /* invalid offset. */
     BSTM_ERR_BAD_OFFS   = -5,
+
+    /* bad size. */
+    BSTM_ERR_BAD_SIZE   = -6,
+
+    /* can't find a EOL. */
+    BSTM_ERR_NO_EOL     = -7,
 };
 
 #ifdef BSTM_DEBUG
@@ -120,6 +126,8 @@ bstm_res_t bstm_stat(bstm_ctx_t *ctx, bstm_stat_t *stat);
 bstm_res_t bstm_write(bstm_ctx_t *ctx, const void *data, bstm_size_t size);
 
 bstm_res_t bstm_read(bstm_ctx_t *ctx, void *data, bstm_size_t size);
+
+bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_size_t *len);
 
 bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t size);
 
