@@ -296,10 +296,20 @@ static eol_t find_eol(const void *data, bstm_size_t size, bstm_size_t *len) {
 /**
  * @brief reads a line of data from the byte stream.
  * 
+ * @note if data is NULL, then the line data won't be removed from byte stream.
+ *       if len is NULL, then line length won't be sent back to the caller.
+ *       however, data and len must not be both NULL at the same time.
+ * 
  * @param ctx context pointer.
  * @param data data pointer.
  * @param size data buffer size.
  * @param len line length pointer.
+ * 
+ * @return BSTM_OK              read line data successfully.
+ *         BSTM_ERR             generic error.
+ *         BSTM_ERR_BAD_SIZE    the data buffer size is insufficient for the incoming line data.
+ *         BSTM_ERR_NO_EOL      can't find any kind of EOL character in current byte stream.
+ * 
 */
 bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_size_t *len) {
     bstm_u8_t *buff_1st_part_ptr;
@@ -308,6 +318,13 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
 
     BSTM_ASSERT(ctx != NULL);
 
+    /* data and len must not be both NULL at the same time. */
+    if (data == NULL &&
+        len == NULL) {
+        return BSTM_ERR;
+    }
+
+    /* a buffer of at least 1 byte length is required. */
     if (size == 0) {
         return BSTM_ERR_BAD_SIZE;
     }
@@ -332,9 +349,9 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
 
         if (data != NULL) {
             memcpy(data, buff_1st_part_ptr, line_size);
-        }
 
-        ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+            ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+        }
     } else {
         bstm_size_t buff_1st_part_size;
         bstm_size_t buff_2nd_part_size;
@@ -354,11 +371,11 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
             if (data != NULL) {
                 memcpy(data, buff_1st_part_ptr, buff_1st_part_size);
                 memcpy(data + buff_1st_part_size, ctx->ring_buff, line_2nd_part_size);
+
+                ctx->head_idx = line_2nd_part_size;
             }
 
             line_size = buff_1st_part_size + line_2nd_part_size;
-
-            ctx->head_idx = line_2nd_part_size;
         } else if (eol == EOL_CR &&
                    line_size == buff_1st_part_size) {
             if (ctx->ring_buff[0] == '\n') {
@@ -371,9 +388,9 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
                 if (data != NULL) {
                     memcpy(data, buff_1st_part_ptr, buff_1st_part_size);
                     *((bstm_u8_t *)data + buff_1st_part_size) = '\n';
-                }
 
-                ctx->head_idx = 1;
+                    ctx->head_idx = 1;
+                }
             } else {
                 if (line_size > size) {
                     return BSTM_ERR_BAD_SIZE;
@@ -381,9 +398,9 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
 
                 if (data != NULL) {
                     memcpy(data, buff_1st_part_ptr, line_size);
-                }
 
-                ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+                    ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+                }
             }
         } else {
             if (line_size > size) {
@@ -392,18 +409,20 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
 
             if (data != NULL) {
                 memcpy(data, buff_1st_part_ptr, line_size);
-            }
 
-            ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+                ctx->head_idx = (ctx->head_idx + line_size) % (ctx->conf.cap_size + 1);
+            }
         }
     }
     if (len != NULL) {
         *len = line_size;
     }
 
-    /* update the cache. */
-    ctx->cache.used_size -= line_size;
-    ctx->cache.free_size += line_size;
+    /* update the cache if needed. */
+    if (data != NULL) {
+        ctx->cache.used_size -= line_size;
+        ctx->cache.free_size += line_size;
+    }
 
     return BSTM_OK;
 }
