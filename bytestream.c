@@ -474,3 +474,24 @@ bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t 
 
     return BSTM_OK;
 }
+
+/**
+ * @brief clear all the data in the byte stream.
+ * 
+ * @param ctx context pointer.
+ * 
+ * @return BSTM_OK clear byte stream successfully.
+*/
+bstm_res_t bstm_clear(bstm_ctx_t *ctx) {
+    BSTM_ASSERT(ctx != NULL);
+
+    /* update indexes. */
+    ctx->head_idx = 0;
+    ctx->tail_idx = 0;
+
+    /* update cache. */
+    ctx->cache.free_size = ctx->conf.cap_size;
+    ctx->cache.used_size = 0;
+
+    return BSTM_OK;
+}

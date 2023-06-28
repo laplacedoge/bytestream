@@ -131,4 +131,6 @@ bstm_res_t bstm_readline(bstm_ctx_t *ctx, void *data, bstm_size_t size, bstm_siz
 
 bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t size);
 
+bstm_res_t bstm_clear(bstm_ctx_t *ctx);
+
 #endif
