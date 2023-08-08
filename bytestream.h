@@ -55,11 +55,11 @@ enum _bstm_res {
     /* failed to allocate memory. */
     BSTM_ERR_NO_MEM     = -2,
 
-    /* insufficient space to write data. */
-    BSTM_ERR_NO_SPA     = -3,
+    /* Insufficient space to write data. */
+    BSTM_ERR_NO_SPACE   = -3,
 
-    /* insufficient data to read or peek. */
-    BSTM_ERR_NO_DAT     = -4,
+    /* Insufficient data to read or peek. */
+    BSTM_ERR_NO_DATA    = -4,
 
     /* invalid offset. */
     BSTM_ERR_BAD_OFFS   = -5,

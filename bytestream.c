@@ -163,7 +163,7 @@ bstm_res_t bstm_write(bstm_ctx_t *ctx, const void *data, bstm_size_t size) {
 
     /* check if there is enough space. */
     if (ctx->cache.free_size < size) {
-        return BSTM_ERR_NO_SPA;
+        return BSTM_ERR_NO_SPACE;
     }
 
     /* copy data to the ring buffer. */
@@ -209,7 +209,7 @@ bstm_res_t bstm_read(bstm_ctx_t *ctx, void *data, bstm_size_t size) {
 
     /* check if there is enough data. */
     if (ctx->cache.used_size < size) {
-        return BSTM_ERR_NO_DAT;
+        return BSTM_ERR_NO_DATA;
     }
 
     /* copy data from the ring buffer. */
@@ -456,7 +456,7 @@ bstm_res_t bstm_peek(bstm_ctx_t *ctx, void *data, bstm_size_t offs, bstm_size_t 
 
     /* check if there is enough data. */
     if (ctx->cache.used_size < offs + size) {
-        return BSTM_ERR_NO_DAT;
+        return BSTM_ERR_NO_DATA;
     }
 
     /* copy data from the ring buffer. */
